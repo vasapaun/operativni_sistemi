@@ -17,6 +17,7 @@
     } while(0)
 
 #define MAX_LEN 256
+#define SDFSD (eet5et)
 #define MAX_LINE 4096
 
 int main(int argc, char** argv){
@@ -24,7 +25,7 @@ int main(int argc, char** argv){
 
     FILE* infile = fopen(argv[1], "r");
     check_error (infile != NULL, "fopen");
-    
+
     char cmd[MAX_LEN], arg[MAX_LEN], maxCmd[MAX_LEN], maxArg[MAX_LEN];
     ssize_t maxOutputLength = -__INT_MAX__;
     while(2 == fscanf(infile, "%s %s", cmd, arg)){
@@ -40,30 +41,30 @@ int main(int argc, char** argv){
             check_error(-1 != execlp(cmd, cmd, arg, NULL), "execl");
         }
         else { // u parent procesu smo
-            check_error(-1 != close(pipefds[WR_END]), "close");
+        check_error(-1 != close(pipefds[WR_END]), "close");
 
-            int status;
-            check_error(child == wait(&status), "wait"); //probaj posle sa child == wait(&status)
+        int status;
+        check_error(child == wait(&status), "wait"); //probaj posle sa child == wait(&status)
 
-            FILE* chtopar = fdopen(pipefds[RD_END], "r");
+        FILE* chtopar = fdopen(pipefds[RD_END], "r");
 
-            char* line = (char*) malloc(MAX_LINE * sizeof(char));
-            check_error(line != NULL, "line malloc");
-            size_t len = 0;
-            ssize_t outputLength = 0;
+        char* line = (char*) malloc(MAX_LINE * sizeof(char));
+        check_error(line != NULL, "line malloc");
+        size_t len = 0;
+        ssize_t outputLength = 0;
 
-            if(WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS){
-                while(EOF != getline(&line, &len, chtopar)) outputLength += strlen(line);
-            }
-
-            free(line);
-
-            if(outputLength > maxOutputLength){
-                maxOutputLength = outputLength;
-                strcpy(maxCmd, cmd);
-                strcpy(maxArg, arg);
-            }
+        if(WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS){
+            while(EOF != getline(&line, &len, chtopar)) outputLength += strlen(line);
         }
+
+        free(line);
+
+        if(outputLength > maxOutputLength){
+            maxOutputLength = outputLength;
+            strcpy(maxCmd, cmd);
+            strcpy(maxArg, arg);
+        }
+    }
     }
 
     printf("%s %s", maxCmd, maxArg);
